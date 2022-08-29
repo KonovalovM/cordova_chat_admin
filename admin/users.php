@@ -19,6 +19,7 @@ $offset = ($page - 1) * $count_users_for_page;
 $sql = "SELECT * FROM users LIMIT " . $count_users_for_page . " OFFSET " . $offset;
 
 $result = mysqli_query($conn_db, $sql);
+
 ?>
 <!DOCTYPE html>
 <html>

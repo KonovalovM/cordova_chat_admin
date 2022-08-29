@@ -15,13 +15,14 @@ if(isset($_GET['page'])) {
             $messages = [];
 
             while ($row = mysqli_fetch_assoc($result)) {
-                $sql = "SELECT avatar, login FROM users WHERE id=" . $row['from_user_id'];
+                $sql = "SELECT id, avatar, login FROM users WHERE id=" . $row['from_user_id'];
                 $resultGetUser = mysqli_query($conn_db, $sql);
                 $user = mysqli_fetch_assoc($resultGetUser);
                 $messages[] = [
                     'content' => $row['content'],
                     'avatar' => "../admin/media/uploads/" . $user['avatar'],
-                    'login' => $user['login']
+                    'login' => $user['login'],
+                    "from_user" => $_GET['user_id_1'] == $user['id'] ? "me" : "you"
                 ];
             }
             echo json_encode(["messages" => $messages]);
@@ -29,39 +30,37 @@ if(isset($_GET['page'])) {
         break;
 
         case "send":
-var_dump(1);
-            if(isset($_POST['user_id_1']) &&
-                isset($_POST['user_id_2']) &&
-                $_POST['user_id_1'] != "" &&
-                $_POST['user_id_2'] != ""
-            ) {
-                $sql = "INSERT INTO messages (content, to_user_id, from_ussr_id) VALUES ('" . $_POST['content'] . "', '" . $_POST['user_id_1'] . "' , '" . $_POST['user_id_2'] . "');";
-                var_dump($sql);
-                if( mysqli_query($conn_db, $sql)) {
-                    $result = mysqli_query($conn_db, $sql);
+            if(isset($_POST)) {
+                $sql = "INSERT INTO messages (content, to_user_id, from_user_id) VALUES ('" . $_POST['content'] . "', '" . $_POST['user_id_1'] . "' , '" . $_POST['user_id_2'] . "');";
+                if (isset($_FILES)) {
+                    $uploaddir = '../admin/media/uploads/';
+                    $filename = rand(1000000, 99999991) . basename($_FILES['file']['name']);
+                    $uploadfile = $uploaddir . $filename;
+                    if (move_uploaded_file($_FILES['file']['tmp_name'], $uploadfile)) {
+
+                    } else {
+                        echo "ERROR";
+                    }
+                    $sql = "INSERT INTO messages (content, to_user_id, from_user_id, file) VALUES ('" . $_POST['content'] . "', '" . $_POST['user_id_1'] . "' , '" . $_POST['user_id_2'] . "', '" . $uploadfile . "');";
+var_dump($sql);
+                    if (mysqli_query($conn_db, $sql)) {
+                        header("Location: ../users.php");
+                    } else {
+                        echo "ERROR";
+                    };
                 }
             }
+//            if(isset($_POST['user_id_1']) &&
+//                isset($_POST['user_id_2']) &&
+//                $_POST['user_id_1'] != "" &&
+//                $_POST['user_id_2'] != ""
+//            ) {
+//                $sql = "INSERT INTO messages (content, to_user_id, from_ussr_id) VALUES ('" . $_POST['content'] . "', '" . $_POST['user_id_1'] . "' , '" . $_POST['user_id_2'] . "');";
+//                var_dump($sql);
+//                if( mysqli_query($conn_db, $sql)) {
+//                    $result = mysqli_query($conn_db, $sql);
+//                }
+//            }
             break;
     }
 }
-?>
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Messages</title>
-    <link rel="stylesheet" href="../admin/media/style.css">
-</head>
-<body>
-<div class="login-page">
-    <div class="form">
-        <form class="login-form" method="post">
-    <textarea name="content" id="" cols="30" rows="10"></textarea>
-    <input type="text" name="user_id_1">
-    <input type="text" name="user_id_2">
-    <button>SEND</button>
-        </form>
-    </div>
-</div>
-</form>
-</body>
-</html>
